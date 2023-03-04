@@ -1,7 +1,14 @@
+var _this4 = this;
+function _createForOfIteratorHelperLoose(o, allowArrayLike) { var it = typeof Symbol !== "undefined" && o[Symbol.iterator] || o["@@iterator"]; if (it) return (it = it.call(o)).next.bind(it); if (Array.isArray(o) || (it = _unsupportedIterableToArray(o)) || allowArrayLike && o && typeof o.length === "number") { if (it) o = it; var i = 0; return function () { if (i >= o.length) return { done: true }; return { done: false, value: o[i++] }; }; } throw new TypeError("Invalid attempt to iterate non-iterable instance.\nIn order to be iterable, non-array objects must have a [Symbol.iterator]() method."); }
+function _unsupportedIterableToArray(o, minLen) { if (!o) return; if (typeof o === "string") return _arrayLikeToArray(o, minLen); var n = Object.prototype.toString.call(o).slice(8, -1); if (n === "Object" && o.constructor) n = o.constructor.name; if (n === "Map" || n === "Set") return Array.from(o); if (n === "Arguments" || /^(?:Ui|I)nt(?:8|16|32)(?:Clamped)?Array$/.test(n)) return _arrayLikeToArray(o, minLen); }
+function _arrayLikeToArray(arr, len) { if (len == null || len > arr.length) len = arr.length; for (var i = 0, arr2 = new Array(len); i < len; i++) arr2[i] = arr[i]; return arr2; }
+function _newArrowCheck(innerThis, boundThis) { if (innerThis !== boundThis) { throw new TypeError("Cannot instantiate an arrow function"); } }
 /* inspired by axios */
-class AjaxRequest {
-  createError(message, code, request, response) {
-    const error = new Error(message);
+var AjaxRequest = /*#__PURE__*/function () {
+  function AjaxRequest() {}
+  var _proto = AjaxRequest.prototype;
+  _proto.createError = function createError(message, code, request, response) {
+    var error = new Error(message);
     error.error = true;
     if (code) {
       error.code = code;
@@ -9,26 +16,35 @@ class AjaxRequest {
     error.request = request;
     error.response = response;
     return error;
-  }
-  settle(resolve, reject, response) {
-    const validateStatus = (status) => {
+  };
+  _proto.settle = function settle(resolve, reject, response) {
+    var _this = this;
+    var validateStatus = function validateStatus(status) {
+      _newArrowCheck(this, _this);
       return status >= 200 && status < 300;
-    };
+    }.bind(this);
     // Note: status is not exposed by XDomainRequest
     if (!response.status || !validateStatus || validateStatus(response.status)) {
       resolve(response);
     } else {
       reject(this.createError('Request failed with status code ' + response.status, null, response.request, response));
     }
-  }
-  request(method, url, formData = null, configureFn) {
-    return new Promise((resolve, reject) => {
+  };
+  _proto.request = function request(method, url, formData, configureFn) {
+    var _this2 = this;
+    if (formData === void 0) {
+      formData = null;
+    }
+    return new Promise(function (resolve, reject) {
+      var _this3 = this;
+      _newArrowCheck(this, _this2);
       // tslint:disable-next-line
-      let request = new XMLHttpRequest();
-      const loadEvent = 'onreadystatechange';
+      var request = new XMLHttpRequest();
+      var loadEvent = 'onreadystatechange';
       request.open(method, url, true);
       // Listen for ready state
-      request[loadEvent] = () => {
+      request[loadEvent] = function () {
+        _newArrowCheck(this, _this3);
         if (!request || request.readyState !== 4) {
           return;
         }
@@ -40,9 +56,9 @@ class AjaxRequest {
           return;
         }
         // Prepare the response
-        const responseHeaders = request.getAllResponseHeaders();
-        let responseData = request.responseText;
-        const contentType = request.getResponseHeader('Content-Type');
+        var responseHeaders = request.getAllResponseHeaders();
+        var responseData = request.responseText;
+        var contentType = request.getResponseHeader('Content-Type');
         if (contentType && contentType.indexOf('application/json') !== -1) {
           responseData = JSON.parse(responseData);
         } else {
@@ -52,41 +68,44 @@ class AjaxRequest {
             /* ignore, possibly non json response */
           }
         }
-        const response = {
+        var response = {
           data: responseData,
           // IE sends 1223 instead of 204 (https://github.com/axios/axios/issues/201)
           status: request.status === 1223 ? 204 : request.status,
           statusText: request.status === 1223 ? 'No Content' : request.statusText,
           headers: responseHeaders,
-          request,
+          request: request
         };
         this.settle(resolve, reject, response);
         // Clean up request
         request = null;
-      };
+      }.bind(this);
       // Handle browser request cancellation (as opposed to a manual cancellation)
-      request.onabort = () => {
+      request.onabort = function () {
+        _newArrowCheck(this, _this3);
         if (!request) {
           return;
         }
         reject(this.createError('Request aborted', 'ECONNABORTED', request));
         // Clean up request
         request = null;
-      };
+      }.bind(this);
       // Handle low level network errors
-      request.onerror = () => {
+      request.onerror = function () {
+        _newArrowCheck(this, _this3);
         // Real errors are hidden from us by the browser
         // onerror should only fire if it's a network error
         reject(this.createError('Network Error', null, request));
         // Clean up request
         request = null;
-      };
+      }.bind(this);
       // Handle timeout
-      request.ontimeout = () => {
+      request.ontimeout = function () {
+        _newArrowCheck(this, _this3);
         reject(this.createError('timeout exceeded', 'ECONNABORTED', request));
         // Clean up request
         request = null;
-      };
+      }.bind(this);
       // // Handle progress if needed
       // if (typeof config.onDownloadProgress === 'function') {
       //   request.addEventListener('progress', config.onDownloadProgress);
@@ -99,60 +118,54 @@ class AjaxRequest {
         configureFn(request);
       }
       request.send(formData);
-    });
-  }
-  get(url, formData, configureFn) {
+    }.bind(this));
+  };
+  _proto.get = function get(url, formData, configureFn) {
     return this.request('GET', url, formData, configureFn);
-  }
-  post(url, formData, configureFn) {
+  };
+  _proto.post = function post(url, formData, configureFn) {
     return this.request('POST', url, formData, configureFn);
-  }
-  delete(url, formData, configureFn) {
+  };
+  _proto["delete"] = function _delete(url, formData, configureFn) {
     return this.request('DELETE', url, formData, configureFn);
-  }
-  put(url, formData, configureFn) {
+  };
+  _proto.put = function put(url, formData, configureFn) {
     return this.request('PUT', url, formData, configureFn);
-  }
-}
-const ajax = new AjaxRequest();
-
-var padZero = (number) => {
+  };
+  return AjaxRequest;
+}();
+var ajax = new AjaxRequest();
+var padZero = function padZero(number) {
+  _newArrowCheck(this, _this4);
   number = parseInt(number);
   if (number < 10) {
     return '0' + number;
   }
   return '' + number;
+}.bind(this);
+var Toast = function Toast(message) {
+  this.message = message;
 };
-
-class Toast {
-  constructor(message) {
-    this.message = message;
-  }
-}
-
-class Prayer {
-  constructor(name, time, iqamahTime, lang) {
-    this.name = name;
-    this.nameDisplay = translations[lang][this.name];
-    this.time = time;
-    // this.iqamah = iqamahTime;
-    // this.iqamah = 100;
-    this.iqamahTime = iqamahTime; //new Date(this.time.getTime() + this.iqamah * 60 * 1000);
-    const d = moment(this.time);
-    this.timeDisplay = d.format('hh:mm');
-    this.timeAmPm = d.format('A');
-    this.timeHours = d.format('hh');
-    this.timeMinutes = d.format('mm');
-    const id = moment(this.iqamahTime);
-    this.iqamahTimeDisplay = id.format('hh:mm');
-    this.iqamahTimeHours = id.format('hh');
-    this.iqamahTimeMinutes = id.format('mm');
-    this.iqamahTimeAmPm = id.format('A');
-  }
-}
-
-class IqamahTime {
-  constructor(minutes, hours, absolute) {
+var Prayer = function Prayer(name, time, iqamahTime, lang) {
+  this.name = name;
+  this.nameDisplay = translations[lang][this.name];
+  this.time = time;
+  // this.iqamah = iqamahTime;
+  // this.iqamah = 100;
+  this.iqamahTime = iqamahTime; //new Date(this.time.getTime() + this.iqamah * 60 * 1000);
+  var d = moment(this.time);
+  this.timeDisplay = d.format('hh:mm');
+  this.timeAmPm = d.format('A');
+  this.timeHours = d.format('hh');
+  this.timeMinutes = d.format('mm');
+  var id = moment(this.iqamahTime);
+  this.iqamahTimeDisplay = id.format('hh:mm');
+  this.iqamahTimeHours = id.format('hh');
+  this.iqamahTimeMinutes = id.format('mm');
+  this.iqamahTimeAmPm = id.format('A');
+};
+var IqamahTime = /*#__PURE__*/function () {
+  function IqamahTime(minutes, hours, absolute) {
     this.minutes = padZero(minutes || 0);
     hours = parseInt(hours);
     this.hours = hours ? padZero(hours) : '';
@@ -169,18 +182,19 @@ class IqamahTime {
     // this.hours = parts[1] || '00';
     // this.time = parts[0];
   }
-  toTime() {
+  var _proto2 = IqamahTime.prototype;
+  _proto2.toTime = function toTime() {
     return this.hours + ':' + this.minutes;
-  }
-  toRaw() {
+  };
+  _proto2.toRaw = function toRaw() {
     return {
       hours: this.hours,
       minutes: this.minutes,
-      absolute: this.absolute,
+      absolute: this.absolute
     };
-  }
-}
-
+  };
+  return IqamahTime;
+}();
 IqamahTime.fromRaw = function (raw) {
   return new IqamahTime(raw.minutes, raw.hours, raw.absolute);
 };
@@ -190,21 +204,22 @@ IqamahTime.fromRaw = function (raw) {
 
 //   }
 // }
-
-class App {
-  constructor() {
+var App = /*#__PURE__*/function () {
+  function App() {
+    var _this5 = this;
     this.lang = localStorage.getItem('mdisplay.lang') || 'ta';
     this.prayerData = [];
-    for (let month in window.PRAYER_DATA) {
+    for (var month in window.PRAYER_DATA) {
       if (window.PRAYER_DATA.hasOwnProperty(month)) {
         this.prayerData.push(window.PRAYER_DATA[month]);
       }
     }
     this.checkInternetJsonp = {
       jsonpCallback: 'checkInternet',
-      url: 'https://mdisplay.github.io/live/check-internet.js',
+      url: 'https://mdisplay.github.io/live/check-internet.js'
       // url: 'http://192.168.1.11/mdisplay/live/check-internet.js',
     };
+
     var timeServerIp = '192.168.1.1';
     var timeServerApi = 'http://' + timeServerIp + '/api';
     this.timeServerApi = timeServerApi;
@@ -222,34 +237,42 @@ class App {
         Asr: new IqamahTime(15),
         Magrib: new IqamahTime(10),
         Isha: new IqamahTime(15),
-        Jummah: new IqamahTime(45),
+        Jummah: new IqamahTime(45)
       },
       appUdate: {
         enabled: false,
         checking: false,
         updated: false,
         updating: false,
-        error: false,
+        error: false
       },
       kioskMode: {
         available: false,
         enabled: false,
         isHome: false,
-        switchLauncher: () => {
+        switchLauncher: function switchLauncher() {
+          _newArrowCheck(this, _this5);
           alert('Kiosk not available');
-        },
+        }.bind(this)
       },
       toasts: [],
-      timeOriginMode: 'device', // or 'network'
-      networkMode: 'network', // or 'timeserver',
+      timeOriginMode: 'device',
+      // or 'network'
+      networkMode: 'network',
+      // or 'timeserver',
       networkTimeApiUrl: timeServerApi,
       isFriday: false,
       selectedLanguage: this.lang,
-      languages: [
-        { id: 'si', label: 'Sinhala' },
-        { id: 'ta', label: 'Tamil' },
-        { id: 'en', label: 'English' },
-      ],
+      languages: [{
+        id: 'si',
+        label: 'Sinhala'
+      }, {
+        id: 'ta',
+        label: 'Tamil'
+      }, {
+        id: 'en',
+        label: 'English'
+      }],
       analogClockActive: false,
       analogClockTheme: 'default',
       networkTimeInitialized: false,
@@ -263,8 +286,8 @@ class App {
         connecting: undefined,
         internetStatus: 'Unknown',
         internetAvailable: undefined,
-        showInternetAvailability: false,
-      },
+        showInternetAvailability: false
+      }
     };
     this.isDeviceReady = false;
     this.isInitial = true;
@@ -276,23 +299,21 @@ class App {
     this.afterSeconds = 2 * 60;
     this.data.bgVersion = '7';
   }
-
-  languageChanged() {
+  var _proto3 = App.prototype;
+  _proto3.languageChanged = function languageChanged() {
     localStorage.setItem('mdisplay.lang', this.data.selectedLanguage);
     this.closeSettings();
-  }
-
-  ssidChanged() {
+  };
+  _proto3.ssidChanged = function ssidChanged() {
     localStorage.setItem('mdisplay.ssid', this.data.timeServerSSID);
     this.closeSettings();
-  }
-
-  checkNetworkStatus() {
+  };
+  _proto3.checkNetworkStatus = function checkNetworkStatus() {
+    var _this6 = this;
     if (!this.isDeviceReady || typeof Connection === 'undefined') {
       return;
     }
     var networkState = navigator.connection.type;
-
     var states = {};
     states[Connection.UNKNOWN] = 'Unknown Connection';
     states[Connection.ETHERNET] = 'Ethernet Connection';
@@ -302,78 +323,84 @@ class App {
     states[Connection.CELL_4G] = 'Cell 4G Connection';
     states[Connection.CELL] = 'Cell Generic Connection';
     states[Connection.NONE] = 'No Network Connection';
-
     this.data.network.status = states[networkState];
     if (networkState == Connection.WIFI && typeof WifiWizard2 !== 'undefined') {
       this.data.network.status = 'Checking WiFi SSID...';
-      WifiWizard2.getConnectedSSID().then(
-        (ssid) => {
-          this.data.network.status = states[Connection.WIFI] + ' (' + ssid + ')';
-        },
-        (err) => {
-          this.data.network.status = states[Connection.WIFI] + ' (SSID err: ' + err + ')';
-        }
-      );
+      WifiWizard2.getConnectedSSID().then(function (ssid) {
+        _newArrowCheck(this, _this6);
+        this.data.network.status = states[Connection.WIFI] + ' (' + ssid + ')';
+      }.bind(this), function (err) {
+        _newArrowCheck(this, _this6);
+        this.data.network.status = states[Connection.WIFI] + ' (SSID err: ' + err + ')';
+      }.bind(this));
     }
 
     // alert('Connection type: ' + states[networkState]);
-  }
-
-  checkNetworkStatusUntilTimeIsValid() {
+  };
+  _proto3.checkNetworkStatusUntilTimeIsValid = function checkNetworkStatusUntilTimeIsValid() {
+    var _this7 = this;
     console.log('checkNetworkStatusUntilTimeIsValid');
     this.checkNetworkStatus();
     if (this.data.timeIsValid) {
       return;
     }
-    setTimeout(() => {
+    setTimeout(function () {
+      _newArrowCheck(this, _this7);
       this.checkNetworkStatusUntilTimeIsValid();
-    }, 3000);
-  }
-
-  checkInternetAvailability(okCallback, retryCount, failCallback) {
+    }.bind(this), 3000);
+  };
+  _proto3.checkInternetAvailability = function checkInternetAvailability(okCallback, retryCount, failCallback) {
+    var _this8 = this;
     retryCount = retryCount || 0;
     this.setFetchingStatus('Checking Internet Connection...', 'init', true);
-    const retry = (okCallback) => {
+    var retry = function retry(okCallback) {
+      var _this9 = this;
+      _newArrowCheck(this, _this8);
       if (retryCount <= 0) {
         failCallback();
         return;
       }
-      setTimeout(() => {
+      setTimeout(function () {
+        _newArrowCheck(this, _this9);
         this.checkInternetAvailability(okCallback, retryCount - 1, failCallback);
-      }, 3000);
-    };
+      }.bind(this), 3000);
+    }.bind(this);
     $.ajax({
       type: 'GET',
       dataType: 'jsonp',
       url: this.checkInternetJsonp.url,
       jsonpCallback: this.checkInternetJsonp.jsonpCallback,
       contentType: 'application/json; charset=utf-8',
-      success: (response) => {
+      success: function success(response) {
+        var _this10 = this;
+        _newArrowCheck(this, _this8);
         // console.log('Result received', response);
         if (response && response.result == 'ok') {
           this.setFetchingStatus('Internet Connection OK ', 'success', false, 999);
-          setTimeout(() => {
+          setTimeout(function () {
+            _newArrowCheck(this, _this10);
             this.data.network.internetAvailable = true;
             okCallback();
             // this.data.network.checking = false;
-          }, 2000);
+          }.bind(this), 2000);
           return;
         }
         this.data.network.internetAvailable = false;
         this.setFetchingStatus('INVALID response', 'error', false, 999);
         retry(okCallback);
-      },
-      error: (err) => {
+      }.bind(this),
+      error: function error(err) {
+        _newArrowCheck(this, _this8);
         // console.log('err: ', err);
         // // alert('err: ' + err);
         this.data.network.internetAvailable = false;
         this.setFetchingStatus('Internet Connection FAILED', 'error', false, 999);
         retry(okCallback);
-      },
+      }.bind(this)
     });
-  }
-
-  checkForUpdates() {
+  };
+  _proto3.checkForUpdates = function checkForUpdates() {
+    var _this11 = this;
     if (window.codePush === undefined) {
       console.log('codePush not available');
       alert('AUTO UPDATE not available!');
@@ -387,32 +414,31 @@ class App {
     this.data.appUdate.checking = true;
     this.data.appUdate.updated = false;
     this.data.appUdate.updating = false;
-    window.codePush.checkForUpdate(
-      (update) => {
-        this.data.appUdate.error = false;
-        this.data.appUdate.checking = false;
-        this.data.appUdate.updating = false;
-        this.data.appUdate.updated = false;
-        if (!update) {
-          // alert("The app is up to date.");
-          this.data.appUdate.updated = true;
-        } else {
-          this.data.appUdate.updating = true;
-          window.askAndAutoUpdate();
-          // alert("An update is available! Should we download it?");
-          // window.codePush.restartApplication();
-        }
-      },
-      (error) => {
-        this.data.appUdate.checking = false;
-        this.data.appUdate.updating = false;
-        this.data.appUdate.updated = false;
-        this.data.appUdate.error = error;
+    window.codePush.checkForUpdate(function (update) {
+      _newArrowCheck(this, _this11);
+      this.data.appUdate.error = false;
+      this.data.appUdate.checking = false;
+      this.data.appUdate.updating = false;
+      this.data.appUdate.updated = false;
+      if (!update) {
+        // alert("The app is up to date.");
+        this.data.appUdate.updated = true;
+      } else {
+        this.data.appUdate.updating = true;
+        window.askAndAutoUpdate();
+        // alert("An update is available! Should we download it?");
+        // window.codePush.restartApplication();
       }
-    );
-  }
-
-  checkForKioskMode() {
+    }.bind(this), function (error) {
+      _newArrowCheck(this, _this11);
+      this.data.appUdate.checking = false;
+      this.data.appUdate.updating = false;
+      this.data.appUdate.updated = false;
+      this.data.appUdate.error = error;
+    }.bind(this));
+  };
+  _proto3.checkForKioskMode = function checkForKioskMode() {
+    var _this12 = this;
     if (window.Kiosk === undefined) {
       this.data.kioskMode.available = false;
       this.data.kioskMode.enabled = false;
@@ -421,23 +447,25 @@ class App {
       return;
     }
     this.data.kioskMode.available = true;
-    Kiosk.isInKiosk((isInKiosk) => {
+    Kiosk.isInKiosk(function (isInKiosk) {
+      _newArrowCheck(this, _this12);
       this.data.kioskMode.enabled = isInKiosk;
-    });
-    Kiosk.isSetAsLauncher((isSetAsLauncher) => {
+    }.bind(this));
+    Kiosk.isSetAsLauncher(function (isSetAsLauncher) {
+      _newArrowCheck(this, _this12);
       this.data.kioskMode.isHome = isSetAsLauncher;
-    });
-    this.data.kioskMode.switchLauncher = () => {
+    }.bind(this));
+    this.data.kioskMode.switchLauncher = function () {
+      _newArrowCheck(this, _this12);
       Kiosk.switchLauncher();
-    };
+    }.bind(this);
     // this.data.kioskMode.enabled = true;
     // kioskMode;
-  }
-
-  getRandomNumber(min, max) {
+  };
+  _proto3.getRandomNumber = function getRandomNumber(min, max) {
     return Math.floor(min + Math.random() * (max - min + 1));
-  }
-  updateTime() {
+  };
+  _proto3.updateTime = function updateTime() {
     if (!this.data.time) {
       this.data.time = this.initialTestTime ? this.initialTestTime : new Date();
       this.data.time.setTime(this.data.time.getTime() - 1000);
@@ -445,21 +473,23 @@ class App {
       //   this.data.time.setFullYear(1970);
       // }
     }
+
     if (this.initialTestTime || this.data.timeOriginMode == 'network') {
       this.data.time = new Date(this.data.time.getTime() + 1000);
     } else {
       this.data.time = new Date();
     }
-    const lastKnownYear = 2021;
+    var lastKnownYear = 2021;
     this.data.timeIsValid = this.data.time.getFullYear() >= lastKnownYear;
     if (!this.initialTestTime && !this.data.timeIsValid) {
-      const d = new Date();
+      var d = new Date();
       if (d.getFullYear() >= lastKnownYear /* && d.getSeconds() > 30 */) {
         // fallback mode
         // this.data.time = d;
       }
       // this.checkNetworkStatusUntilTimeIsValid();
     }
+
     if (!this.data.timeIsValid) {
       // if (this.data.timeOriginMode != 'network' && this.data.network.internetAvailable === undefined) {
       //   this.checkInternetAvailability(
@@ -484,21 +514,21 @@ class App {
     this.data.timeDisplayColon = this.data.timeDisplayColon == ':' ? '' : ':';
     this.data.timeDisplayAmPm = moment(this.data.time).format('A');
     this.updateInternetTime();
-  }
-  getDateParams(date) {
+  };
+  _proto3.getDateParams = function getDateParams(date) {
     return [date.getFullYear(), date.getMonth(), date.getDate()];
-  }
-  getTime(yearParam, monthParam, dayParam, time) {
-    let timeParts = time.split(':');
-    let hoursAdd = 0;
+  };
+  _proto3.getTime = function getTime(yearParam, monthParam, dayParam, time) {
+    var timeParts = time.split(':');
+    var hoursAdd = 0;
     if (timeParts[1].indexOf('p') != -1) {
       hoursAdd = 12;
     }
-    const hours = hoursAdd + parseInt(timeParts[0]);
-    const minutes = parseInt(timeParts[1].replace('a', '').replace('p', ''));
-    const m = moment(yearParam + ' ' + (monthParam + 1) + ' ' + dayParam + ' ' + time + 'm', 'YYYY M D hh:mma');
+    var hours = hoursAdd + parseInt(timeParts[0]);
+    var minutes = parseInt(timeParts[1].replace('a', '').replace('p', ''));
+    var m = moment(yearParam + ' ' + (monthParam + 1) + ' ' + dayParam + ' ' + time + 'm', 'YYYY M D hh:mma');
     if (!isNaN(this.data.timeAdjustmentMinutes) && this.data.timeAdjustmentMinutes != 0) {
-      const timeAdjustmentMinutes = parseInt(this.data.timeAdjustmentMinutes);
+      var timeAdjustmentMinutes = parseInt(this.data.timeAdjustmentMinutes);
       if (timeAdjustmentMinutes < 0) {
         m.subtract(timeAdjustmentMinutes, 'minutes');
       } else {
@@ -506,13 +536,15 @@ class App {
       }
     }
     return m.toDate();
-  }
-  getTimes(yearParam, monthParam, dayParam) {
-    const times = [];
-    for (let segment of this.prayerData[monthParam]) {
+  };
+  _proto3.getTimes = function getTimes(yearParam, monthParam, dayParam) {
+    var times = [];
+    for (var _iterator = _createForOfIteratorHelperLoose(this.prayerData[monthParam]), _step; !(_step = _iterator()).done;) {
+      var segment = _step.value;
       if (segment.range[0] <= dayParam && segment.range[1] >= dayParam) {
         // this.currentSegment = segment;
-        for (let time of segment.times) {
+        for (var _iterator2 = _createForOfIteratorHelperLoose(segment.times), _step2; !(_step2 = _iterator2()).done;) {
+          var time = _step2.value;
           times.push(this.getTime(yearParam, monthParam, dayParam, time));
         }
         break;
@@ -526,14 +558,14 @@ class App {
       Luhar: times[2],
       Asr: times[3],
       Magrib: times[4],
-      Isha: times[5],
+      Isha: times[5]
     };
-  }
-  getIqamahTimes(prayerTimes, monthParam, dayParam) {
-    const iqamahTimes = {};
-    for (const name in this.data.iqamahTimes) {
-      const prayerName = name == 'Jummah' ? 'Luhar' : name;
-      const iqamahTime = this.data.iqamahTimes[name];
+  };
+  _proto3.getIqamahTimes = function getIqamahTimes(prayerTimes, monthParam, dayParam) {
+    var iqamahTimes = {};
+    for (var name in this.data.iqamahTimes) {
+      var prayerName = name == 'Jummah' ? 'Luhar' : name;
+      var iqamahTime = this.data.iqamahTimes[name];
       if (iqamahTime.absolute) {
         iqamahTimes[name] = this.getTime(monthParam, dayParam, iqamahTime.toTime() + (name == 'Subah' ? 'a' : 'p'));
       } else {
@@ -541,64 +573,45 @@ class App {
       }
     }
     return iqamahTimes;
-  }
-  showNextDayPrayers() {
+  };
+  _proto3.showNextDayPrayers = function showNextDayPrayers() {
     this.data.prayers = this.nextDayPrayers;
-  }
-  onDayUpdate() {
-    let dateParams = this.getDateParams(this.data.time);
+  };
+  _proto3.onDayUpdate = function onDayUpdate() {
+    var dateParams = this.getDateParams(this.data.time);
     this.currentDateParams = dateParams;
     // console.log();
-    let times;
-    const fallbackToNextDayOnFail = false;
-    for (let i = 0; i < 100; i++) {
+    var times;
+    var fallbackToNextDayOnFail = false;
+    for (var i = 0; i < 100; i++) {
       // try few more times!; - why? - fallback if data is not available for a particular day
       times = this.getTimes(dateParams[0], dateParams[1], dateParams[2]);
       if (times || !fallbackToNextDayOnFail) {
         break;
       }
-      const d = new Date(this.data.time.getTime());
-      d.setDate(d.getDate() + 1);
-      dateParams = this.getDateParams(d);
+      var _d = new Date(this.data.time.getTime());
+      _d.setDate(_d.getDate() + 1);
+      dateParams = this.getDateParams(_d);
     }
-
-    const d = moment(this.data.time);
-    const dayOfWeek = parseInt(d.format('d'));
-    const day = translations[this.lang].days[dayOfWeek];
+    var d = moment(this.data.time);
+    var dayOfWeek = parseInt(d.format('d'));
+    var day = translations[this.lang].days[dayOfWeek];
     this.data.isFriday = dayOfWeek === 5;
-    const month = translations[this.lang].months[this.data.time.getMonth()];
-
+    var month = translations[this.lang].months[this.data.time.getMonth()];
     console.log('all the times', times);
-    const iqamahTimes = this.getIqamahTimes(times, dateParams[1], dateParams[2]);
-    this.todayPrayers = [
-      new Prayer('Subah', times.Subah, iqamahTimes.Subah, this.lang),
-      // new Prayer('Sunrise', times[1], 10, this.lang),
-      // new Prayer('Luhar', times.Luhar, iqamahTimes.Luhar, this.lang),
-      new Prayer(
-        this.data.isFriday ? 'Jummah' : 'Luhar',
-        times.Luhar,
-        this.data.isFriday ? iqamahTimes.Jummah : iqamahTimes.Luhar,
-        this.lang
-      ),
-      new Prayer('Asr', times.Asr, iqamahTimes.Asr, this.lang),
-      new Prayer('Magrib', times.Magrib, iqamahTimes.Magrib, this.lang),
-      new Prayer('Isha', times.Isha, iqamahTimes.Isha, this.lang),
-    ];
+    var iqamahTimes = this.getIqamahTimes(times, dateParams[1], dateParams[2]);
+    this.todayPrayers = [new Prayer('Subah', times.Subah, iqamahTimes.Subah, this.lang),
+    // new Prayer('Sunrise', times[1], 10, this.lang),
+    // new Prayer('Luhar', times.Luhar, iqamahTimes.Luhar, this.lang),
+    new Prayer(this.data.isFriday ? 'Jummah' : 'Luhar', times.Luhar, this.data.isFriday ? iqamahTimes.Jummah : iqamahTimes.Luhar, this.lang), new Prayer('Asr', times.Asr, iqamahTimes.Asr, this.lang), new Prayer('Magrib', times.Magrib, iqamahTimes.Magrib, this.lang), new Prayer('Isha', times.Isha, iqamahTimes.Isha, this.lang)];
     this.data.prayers = this.todayPrayers;
-
-    const tomorrowParams = this.getDateParams(new Date(this.data.time.getTime() + 24 * 60 * 60 * 1000));
-    let tomorrowTimes = this.getTimes(tomorrowParams[0], tomorrowParams[1], tomorrowParams[2]);
+    var tomorrowParams = this.getDateParams(new Date(this.data.time.getTime() + 24 * 60 * 60 * 1000));
+    var tomorrowTimes = this.getTimes(tomorrowParams[0], tomorrowParams[1], tomorrowParams[2]);
     if (!tomorrowTimes) {
       tomorrowTimes = times;
     }
-    const tomorrowIqamahTimes = this.getIqamahTimes(tomorrowTimes, tomorrowParams[1], tomorrowParams[2]);
-    this.nextDayPrayers = [
-      new Prayer('Subah', tomorrowTimes.Subah, tomorrowIqamahTimes.Subah, this.lang),
-      new Prayer('Luhar', tomorrowTimes.Luhar, tomorrowIqamahTimes.Luhar, this.lang),
-      new Prayer('Asr', tomorrowTimes.Asr, tomorrowIqamahTimes.Asr, this.lang),
-      new Prayer('Magrib', tomorrowTimes.Magrib, tomorrowIqamahTimes.Magrib, this.lang),
-      new Prayer('Isha', tomorrowTimes.Isha, tomorrowIqamahTimes.Isha, this.lang),
-    ];
+    var tomorrowIqamahTimes = this.getIqamahTimes(tomorrowTimes, tomorrowParams[1], tomorrowParams[2]);
+    this.nextDayPrayers = [new Prayer('Subah', tomorrowTimes.Subah, tomorrowIqamahTimes.Subah, this.lang), new Prayer('Luhar', tomorrowTimes.Luhar, tomorrowIqamahTimes.Luhar, this.lang), new Prayer('Asr', tomorrowTimes.Asr, tomorrowIqamahTimes.Asr, this.lang), new Prayer('Magrib', tomorrowTimes.Magrib, tomorrowIqamahTimes.Magrib, this.lang), new Prayer('Isha', tomorrowTimes.Isha, tomorrowIqamahTimes.Isha, this.lang)];
     // this.data.nextPrayer = this.data.prayers[0];
     this.data.currentPrayer = undefined;
     this.data.currentPrayerBefore = false;
@@ -611,26 +624,20 @@ class App {
     // this.data.dateDisplay = d.format('ddd, DD MMM YYYY');
     this.data.weekDayDisplay = day;
     this.data.dateDisplay = padZero(this.data.time.getDate()) + ' ' + month + ' ' + this.data.time.getFullYear(); //day + ', ' +
-    const hijriMonth = parseInt(d.format('iM'));
+    var hijriMonth = parseInt(d.format('iM'));
     // this.data.hijriDateDisplay = d.format('iDD, ___ (iMM) iYYYY').replace('___', translations.ta.months[hijriMonth - 1]);
     // const hijriDate = new HijriDate(this.data.time.getTime());
-    const hijriDate = HijriJS.gregorianToHijri(
-      this.data.time.getFullYear(),
-      this.data.time.getMonth() + 1,
-      this.data.time.getDate()
-    );
+    var hijriDate = HijriJS.gregorianToHijri(this.data.time.getFullYear(), this.data.time.getMonth() + 1, this.data.time.getDate());
     // this.data.hijriDateDisplay = d.format('iDD ___ iYYYY').replace('___', translations.ta.months[hijriMonth - 1]);
     // this.data.hijriDateDisplay = padZero(hijriDate.getDate()) + ' ' + translations.ta.months[hijriDate.getMonth()] + ' ' + hijriDate.getFullYear();
-    this.data.hijriDateDisplay =
-      padZero(hijriDate.day) + ' ' + translations[this.lang].hijriMonths[hijriDate.month - 1] + ' ' + hijriDate.year;
+    this.data.hijriDateDisplay = padZero(hijriDate.day) + ' ' + translations[this.lang].hijriMonths[hijriDate.month - 1] + ' ' + hijriDate.year;
     // this.data.hijriDateDisplay = hijriDate.toFormat('dd mm YYYY');
 
     this.data.hijriDate = hijriDate;
-
     this.data.prayerInfo = 'athan';
     this.updateBackground(true);
-  }
-  updateBackground(isInit) {
+  };
+  _proto3.updateBackground = function updateBackground(isInit) {
     if (!isInit) {
       // return;
     }
@@ -638,11 +645,10 @@ class App {
     //   'https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max',
     // ];
     // return (this.data.backgroundImage = backgroundImages[0]);
-    const maxAvailableBackgrounds = 11;
-    this.data.backgroundImage =
-      'backgrounds/' + this.getRandomNumber(1, maxAvailableBackgrounds) + '.jpg?v=' + this.data.bgVersion;
-  }
-  commitCurrentPrayer() {
+    var maxAvailableBackgrounds = 11;
+    this.data.backgroundImage = 'backgrounds/' + this.getRandomNumber(1, maxAvailableBackgrounds) + '.jpg?v=' + this.data.bgVersion;
+  };
+  _proto3.commitCurrentPrayer = function commitCurrentPrayer() {
     if (!this.data.currentPrayer) {
       this.data.currentPrayerDescription = '';
       return;
@@ -654,23 +660,23 @@ class App {
     } else if (this.data.currentPrayerAfter) {
       this.data.currentPrayerDescription = translations[this.lang].currentPrayerAfter;
     }
-  }
-  checkCurrentPrayer(currentPrayer) {
-    const nowTime = this.data.time.getTime();
-    const iqamahTime = currentPrayer.iqamahTime.getTime();
+  };
+  _proto3.checkCurrentPrayer = function checkCurrentPrayer(currentPrayer) {
+    var nowTime = this.data.time.getTime();
+    var iqamahTime = currentPrayer.iqamahTime.getTime();
     if (nowTime >= iqamahTime) {
       if (nowTime - iqamahTime < this.afterSeconds * 1000) {
         this.data.currentPrayer = currentPrayer;
         this.data.currentPrayerBefore = false;
         // this.data.currentPrayerAfter = true;
-        const duration = moment.duration(nowTime - iqamahTime, 'milliseconds');
+        var duration = moment.duration(nowTime - iqamahTime, 'milliseconds');
         // this.data.currentPrayerAfter = padZero(duration.minutes()) + ':' + padZero(duration.seconds());
-        let pause = nowTime - iqamahTime < 15 * 1000;
+        var pause = nowTime - iqamahTime < 15 * 1000;
         pause = true;
         this.data.currentPrayerAfter = {
           minutes: pause ? '00' : padZero(duration.minutes()),
           colon: this.data.currentPrayerAfter && this.data.currentPrayerAfter.colon == ':' ? ':' : ':',
-          seconds: pause ? '00' : padZero(duration.seconds()),
+          seconds: pause ? '00' : padZero(duration.seconds())
         };
         this.data.currentPrayerWaiting = false;
       } else {
@@ -686,39 +692,35 @@ class App {
       if (nowTime - currentPrayer.time.getTime() < 15 * 1000) {
         this.data.currentPrayerWaiting = false;
         this.data.currentPrayerBefore = {
-          minutes: '00', // padZero(duration.minutes()),
+          minutes: '00',
+          // padZero(duration.minutes()),
           colon: this.data.currentPrayerBefore && this.data.currentPrayerBefore.colon == ':' ? ':' : ':',
-          seconds: '00', // padZero(duration.seconds()),
+          seconds: '00' // padZero(duration.seconds()),
         };
+
         return;
       }
-      const duration = moment.duration(iqamahTime - nowTime, 'milliseconds');
+      var _duration = moment.duration(iqamahTime - nowTime, 'milliseconds');
       this.data.currentPrayerWaiting = {
-        minutes: padZero(duration.minutes()),
+        minutes: padZero(_duration.minutes()),
         colon: this.data.currentPrayerWaiting && this.data.currentPrayerWaiting.colon == ':' ? '' : ':',
-        seconds: padZero(duration.seconds()),
+        seconds: padZero(_duration.seconds())
       };
     }
-  }
-  nextTick() {
+  };
+  _proto3.nextTick = function nextTick() {
+    var _this13 = this;
     this.updateTime();
-    const dateParams = this.getDateParams(this.data.time);
-    if (
-      !(
-        this.currentDateParams &&
-        dateParams[0] === this.currentDateParams[0] &&
-        dateParams[1] === this.currentDateParams[1] &&
-        dateParams[2] === this.currentDateParams[2]
-      )
-    ) {
+    var dateParams = this.getDateParams(this.data.time);
+    if (!(this.currentDateParams && dateParams[0] === this.currentDateParams[0] && dateParams[1] === this.currentDateParams[1] && dateParams[2] === this.currentDateParams[2])) {
       this.onDayUpdate();
     }
-    const changeBackgroundInMinutes = 1;
+    var changeBackgroundInMinutes = 1;
     if (this.data.time.getMinutes() % changeBackgroundInMinutes === 0 && this.data.time.getSeconds() === 0) {
       this.updateBackground();
     }
-    const checkInternetInMinutes = 1;
-    let checkInternetNow = false;
+    var checkInternetInMinutes = 1;
+    var checkInternetNow = false;
     if (this.data.time.getMinutes() % checkInternetInMinutes === 0 && this.data.time.getSeconds() === 0) {
       checkInternetNow = true;
     }
@@ -731,31 +733,31 @@ class App {
       this.tryConnectingToTimeServer();
     } else {
       if (checkInternetNow) {
-        this.checkInternetAvailability(
-          () => {},
-          10,
-          () => {
-            this.setFetchingStatus('No Internet', 'error', false, 999);
-          }
-        );
+        this.checkInternetAvailability(function () {
+          _newArrowCheck(this, _this13);
+        }.bind(this), 10, function () {
+          _newArrowCheck(this, _this13);
+          this.setFetchingStatus('No Internet', 'error', false, 999);
+        }.bind(this));
       } else if (this.data.network.internetAvailable === undefined) {
-        this.checkInternetAvailability(
-          () => {},
-          0,
-          () => {}
-        );
+        this.checkInternetAvailability(function () {
+          _newArrowCheck(this, _this13);
+        }.bind(this), 0, function () {
+          _newArrowCheck(this, _this13);
+        }.bind(this));
       }
     }
     if (this.data.time.getSeconds() % 2 === 0) {
       this.data.prayerInfo = this.data.prayerInfo === 'athan' ? 'iqamah' : 'athan';
     }
-    const nowTime = this.data.time.getTime();
-    let nextTime = this.data.nextPrayer ? this.data.nextPrayer.time.getTime() : 0;
+    var nowTime = this.data.time.getTime();
+    var nextTime = this.data.nextPrayer ? this.data.nextPrayer.time.getTime() : 0;
     // console.log('nextTick');
     if (nowTime >= nextTime + 1000) {
       console.log('coming next');
-      let nextPrayer;
-      for (let prayer of this.todayPrayers) {
+      var nextPrayer;
+      for (var _iterator3 = _createForOfIteratorHelperLoose(this.todayPrayers), _step3; !(_step3 = _iterator3()).done;) {
+        var prayer = _step3.value;
         if (nowTime < prayer.time.getTime()) {
           nextPrayer = prayer;
           break;
@@ -778,17 +780,18 @@ class App {
       this.data.currentPrayerAfter = false;
       this.data.currentPrayerWaiting = false;
       this.data.currentPrayerBefore = {
-        minutes: '00', // padZero(duration.minutes()),
+        minutes: '00',
+        // padZero(duration.minutes()),
         colon: this.data.currentPrayerBefore && this.data.currentPrayerBefore.colon == ':' ? ':' : ':',
-        seconds: '00', // padZero(duration.seconds()),
+        seconds: '00' // padZero(duration.seconds()),
       };
     } else if (nextTime - nowTime < this.beforeSeconds * 1000) {
       this.data.currentPrayer = this.data.nextPrayer;
-      const duration = moment.duration(nextTime - nowTime, 'milliseconds');
+      var duration = moment.duration(nextTime - nowTime, 'milliseconds');
       this.data.currentPrayerBefore = {
         minutes: padZero(duration.minutes()),
         colon: this.data.currentPrayerBefore && this.data.currentPrayerBefore.colon == ':' ? '' : ':',
-        seconds: padZero(duration.seconds()),
+        seconds: padZero(duration.seconds())
       };
       this.data.currentPrayerAfter = false;
       this.data.currentPrayerWaiting = false;
@@ -799,11 +802,11 @@ class App {
         if (this.isInitial) {
           console.log('is isInitial');
           // if (nowTime < ) {}
-          let prevPrayer;
+          var prevPrayer;
           if (this.data.nextPrayer === this.nextDayPrayers[0]) {
             prevPrayer = this.todayPrayers[this.todayPrayers.length - 1];
           } else {
-            const idx = this.todayPrayers.indexOf(this.data.nextPrayer);
+            var idx = this.todayPrayers.indexOf(this.data.nextPrayer);
             if (idx > 0) {
               // not subah
               prevPrayer = this.todayPrayers[idx - 1];
@@ -825,37 +828,40 @@ class App {
       this.analogClock.nextTick();
     }
     this.commitCurrentPrayer();
-  }
-  forceTimeUpdate(newDate) {
+  };
+  _proto3.forceTimeUpdate = function forceTimeUpdate(newDate) {
     this.data.time = newDate;
     // this.onDayUpdate();
-  }
-  translate(text) {
+  };
+  _proto3.translate = function translate(text) {
     return translations[this.lang][text] || text;
-  }
-  openSettings() {
+  };
+  _proto3.openSettings = function openSettings() {
     this.data.settingsMode = true;
     this.checkForKioskMode();
-  }
-  closeSettings() {
+  };
+  _proto3.closeSettings = function closeSettings() {
     this.data.settingsMode = false;
-    const reloadOnSettings = true;
+    var reloadOnSettings = true;
     if (reloadOnSettings || this.shouldReload) {
       window.location.reload();
     }
-  }
-  showToast(message, duration) {
+  };
+  _proto3.showToast = function showToast(message, duration) {
+    var _this14 = this;
     duration = duration || 3000;
     var toast = new Toast(message);
     this.data.toasts.push(toast);
-    setTimeout(() => {
+    setTimeout(function () {
+      _newArrowCheck(this, _this14);
       var i = this.data.toasts.indexOf(toast);
       if (i !== -1) {
         this.data.toasts.splice(i, 1);
       }
-    }, duration);
-  }
-  mounted() {
+    }.bind(this), duration);
+  };
+  _proto3.mounted = function mounted() {
+    var _this15 = this;
     this.showToast('Application loaded.', 3000);
     // this.simulateTime = 50;
     this.updateTime();
@@ -865,24 +871,23 @@ class App {
     if (this.data.timeOriginMode == 'network' && this.simulateTime) {
       alert('Warning: simulateTime feature is not compatible with network time');
     }
-    window._theInterval = window.setInterval(
-      () => {
-        this.nextTick();
-      },
-      this.simulateTime ? this.simulateTime : 1000
-    );
-    setTimeout(() => {
+    window._theInterval = window.setInterval(function () {
+      _newArrowCheck(this, _this15);
+      this.nextTick();
+    }.bind(this), this.simulateTime ? this.simulateTime : 1000);
+    setTimeout(function () {
+      _newArrowCheck(this, _this15);
       this.data.showSplash = false;
-    }, 1000);
-  }
-  created() {
+    }.bind(this), 1000);
+  };
+  _proto3.created = function created() {
     if (window._theInterval) {
       window.clearInterval(window._theInterval);
     }
-  }
-  initStorage(callback) {
-    let iqamahTimes;
-    let settings;
+  };
+  _proto3.initStorage = function initStorage(callback) {
+    var iqamahTimes;
+    var settings;
     try {
       settings = JSON.parse(localStorage.getItem('mdisplay.settings'));
     } catch (e) {}
@@ -892,8 +897,8 @@ class App {
     if (!iqamahTimes) {
       return callback();
     }
-    const iqamahTimesConfigured = localStorage.getItem('mdisplay.iqamahTimesConfigured');
-    for (const name in iqamahTimes) {
+    var iqamahTimesConfigured = localStorage.getItem('mdisplay.iqamahTimesConfigured');
+    for (var name in iqamahTimes) {
       this.data.iqamahTimes[name] = IqamahTime.fromRaw(iqamahTimes[name]);
     }
     this.data.iqamahTimesConfigured = !!iqamahTimesConfigured;
@@ -901,7 +906,7 @@ class App {
       if (settings.timeOriginMode == 'device' || settings.timeOriginMode == 'network') {
         this.data.timeOriginMode = settings.timeOriginMode;
       }
-      const timeAdjustmentMinutes = parseInt(settings.timeAdjustmentMinutes);
+      var timeAdjustmentMinutes = parseInt(settings.timeAdjustmentMinutes);
       if (!isNaN(timeAdjustmentMinutes)) {
         this.data.timeAdjustmentMinutes = timeAdjustmentMinutes;
       }
@@ -910,18 +915,19 @@ class App {
       }
       // ...
     }
+
     callback();
-  }
-  writeStorage(callback) {
-    const iqamahTimes = {};
-    for (const name in this.data.iqamahTimes) {
+  };
+  _proto3.writeStorage = function writeStorage(callback) {
+    var iqamahTimes = {};
+    for (var name in this.data.iqamahTimes) {
       iqamahTimes[name] = this.data.iqamahTimes[name].toRaw();
     }
     this.data.iqamahTimesConfigured = true;
-    const settings = {
+    var settings = {
       timeOriginMode: this.data.timeOriginMode,
       timeAdjustmentMinutes: this.data.timeAdjustmentMinutes,
-      analogClockActive: this.data.analogClockActive,
+      analogClockActive: this.data.analogClockActive
     };
     localStorage.setItem('mdisplay.iqamahTimes', JSON.stringify(iqamahTimes));
     localStorage.setItem('mdisplay.iqamahTimesConfigured', 1);
@@ -929,25 +935,27 @@ class App {
     if (callback) {
       callback();
     }
-  }
-  updateSettings() {
+  };
+  _proto3.updateSettings = function updateSettings() {
     this.writeStorage();
     this.shouldReload = true;
-  }
-  initShortcuts() {
-    const KEY_CODES = {
+  };
+  _proto3.initShortcuts = function initShortcuts() {
+    var _this16 = this;
+    var KEY_CODES = {
       ENTER: 13,
       ARROW_LEFT: 37,
       ARROW_UP: 38,
       ARROW_RIGHT: 39,
-      ARROW_DOWN: 40,
+      ARROW_DOWN: 40
     };
-    const body = document.querySelector('body');
-    body.onkeydown = (event) => {
+    var body = document.querySelector('body');
+    body.onkeydown = function (event) {
+      _newArrowCheck(this, _this16);
       if (!event.metaKey) {
         // e.preventDefault();
       }
-      const keyCode = event.keyCode;
+      var keyCode = event.keyCode;
       // alert('keyCode: ' + keyCode);
       if (keyCode == KEY_CODES.ENTER) {
         event.preventDefault();
@@ -961,11 +969,11 @@ class App {
       if (!this.data.settingsMode) {
         return;
       }
-      const rows = document.querySelectorAll('.times-config .time-config');
+      var rows = document.querySelectorAll('.times-config .time-config');
       if (keyCode == KEY_CODES.ARROW_DOWN || keyCode == KEY_CODES.ARROW_UP) {
         event.preventDefault();
-        let lastSelectedRow = this.lastSelectedRow || 0;
-        let lastSelectedCol = this.lastSelectedCol || 1;
+        var lastSelectedRow = this.lastSelectedRow || 0;
+        var lastSelectedCol = this.lastSelectedCol || 1;
         lastSelectedRow += keyCode == KEY_CODES.ARROW_UP ? -1 : 1;
         if (lastSelectedRow < 1) {
           lastSelectedRow = rows.length;
@@ -973,68 +981,68 @@ class App {
         if (lastSelectedRow > rows.length) {
           lastSelectedRow = 1;
         }
-        const row = rows[lastSelectedRow - 1];
-        const cols = row.querySelectorAll('input');
+        var row = rows[lastSelectedRow - 1];
+        var cols = row.querySelectorAll('input');
         if (lastSelectedCol < 1) {
           lastSelectedCol = cols.length;
         }
         if (lastSelectedCol > cols.length) {
           lastSelectedCol = 1;
         }
-        const col = cols[lastSelectedCol - 1];
+        var col = cols[lastSelectedCol - 1];
         console.log('SHOULD FOCUS: ', col.value, col);
         col.focus();
         this.lastSelectedRow = lastSelectedRow;
         this.lastSelectedCol = lastSelectedCol;
       }
-
       if (keyCode == KEY_CODES.ARROW_LEFT || keyCode == KEY_CODES.ARROW_RIGHT) {
         event.preventDefault();
-        let lastSelectedRow = this.lastSelectedRow || 1;
-        let lastSelectedCol = this.lastSelectedCol || 0;
-        if (lastSelectedRow < 1) {
-          lastSelectedRow = rows.length;
+        var _lastSelectedRow = this.lastSelectedRow || 1;
+        var _lastSelectedCol = this.lastSelectedCol || 0;
+        if (_lastSelectedRow < 1) {
+          _lastSelectedRow = rows.length;
         }
-        if (lastSelectedRow > rows.length) {
-          lastSelectedRow = 1;
+        if (_lastSelectedRow > rows.length) {
+          _lastSelectedRow = 1;
         }
-        const row = rows[lastSelectedRow - 1];
-        const cols = row.querySelectorAll('input');
-        lastSelectedCol += keyCode == KEY_CODES.ARROW_LEFT ? -1 : 1;
-        if (lastSelectedCol < 1) {
-          lastSelectedCol = cols.length;
+        var _row = rows[_lastSelectedRow - 1];
+        var _cols = _row.querySelectorAll('input');
+        _lastSelectedCol += keyCode == KEY_CODES.ARROW_LEFT ? -1 : 1;
+        if (_lastSelectedCol < 1) {
+          _lastSelectedCol = _cols.length;
         }
-        if (lastSelectedCol > cols.length) {
-          lastSelectedCol = 1;
+        if (_lastSelectedCol > _cols.length) {
+          _lastSelectedCol = 1;
         }
-        const col = cols[lastSelectedCol - 1];
-        console.log('SHOULD FOCUS: ', col.value, col);
-        col.focus();
-        this.lastSelectedRow = lastSelectedRow;
-        this.lastSelectedCol = lastSelectedCol;
+        var _col = _cols[_lastSelectedCol - 1];
+        console.log('SHOULD FOCUS: ', _col.value, _col);
+        _col.focus();
+        this.lastSelectedRow = _lastSelectedRow;
+        this.lastSelectedCol = _lastSelectedCol;
       }
-    };
-  }
-  setFetchingStatus(message, mode, status, timeout) {
-    const colors = {
+    }.bind(this);
+  };
+  _proto3.setFetchingStatus = function setFetchingStatus(message, mode, status, timeout) {
+    var _this17 = this;
+    var colors = {
       init: '#ffff20',
       error: '#ff1919',
-      success: '#49ff50',
+      success: '#49ff50'
     };
-    setTimeout(
-      () => {
-        this.data.timeFetchingMessage = {
-          color: colors[mode],
-          text: message,
-        };
-      },
-      timeout ? 500 : 0
-    );
-    setTimeout(() => {
+    setTimeout(function () {
+      _newArrowCheck(this, _this17);
+      this.data.timeFetchingMessage = {
+        color: colors[mode],
+        text: message
+      };
+    }.bind(this), timeout ? 500 : 0);
+    setTimeout(function () {
+      _newArrowCheck(this, _this17);
       this.fetchingInternetTime = status;
-    }, timeout || 0);
-  }
-  updateInternetTime() {
+    }.bind(this), timeout || 0);
+  };
+  _proto3.updateInternetTime = function updateInternetTime() {
+    var _this18 = this;
     if (this.fetchingInternetTime) {
       return;
     }
@@ -1046,75 +1054,71 @@ class App {
       // console.log('Internet time mode already active');
       return;
     }
-
     console.log('Internet time mode fetching from...', this.data.networkTimeApiUrl);
     this.setFetchingStatus('Requesting time from network...', 'init', true);
-
     function parseDateTime(datetime) {
       var parts = datetime.split(' ');
       var dateParts = parts[0].split('-');
       var timeParts = parts[1].split(':');
-      return new Date(
-        parseInt(dateParts[0]),
-        parseInt(dateParts[1]) - 1,
-        parseInt(dateParts[2]),
-        parseInt(timeParts[0]),
-        parseInt(timeParts[1]),
-        parseInt(timeParts[2])
-      );
+      return new Date(parseInt(dateParts[0]), parseInt(dateParts[1]) - 1, parseInt(dateParts[2]), parseInt(timeParts[0]), parseInt(timeParts[1]), parseInt(timeParts[2]));
     }
-
     $.ajax({
       type: 'GET',
       dataType: 'jsonp',
       url: this.data.networkTimeApiUrl + '',
       jsonp: 'callback',
       contentType: 'application/json; charset=utf-8',
-      success: (response) => {
+      success: function success(response) {
+        var _this19 = this;
+        _newArrowCheck(this, _this18);
         // console.log('Result received', response);
-        if (!(response /* && response.timestamp */)) {
+        if (!response /* && response.timestamp */) {
           console.log('Invalid response', response);
           this.setFetchingStatus('INVALID response', 'error', false, 999);
           return;
         }
-        const timestamp = response.timestamp;
-        const time = response.time;
+        var timestamp = response.timestamp;
+        var time = response.time;
         if (!timestamp && !time) {
           this.setFetchingStatus('MISSING timestamp or time from response', 'error', false, 999);
           console.log('Invalid timestamp/time response', response);
           return;
         }
         if (timestamp) {
-          const timestampMillis = timestamp * 1000;
+          var timestampMillis = timestamp * 1000;
           // alert('timestampMillis: ' + timestampMillis);
-          setTimeout(() => {
+          setTimeout(function () {
+            _newArrowCheck(this, _this19);
             // show waiting feedback at least 1 second
             this.forceTimeUpdate(new Date(timestampMillis + 1000));
-          }, 1000);
+          }.bind(this), 1000);
         } else {
-          setTimeout(() => {
+          setTimeout(function () {
+            _newArrowCheck(this, _this19);
             var newDate = parseDateTime(time);
             newDate.setTime(newDate.getTime() + 1000);
             this.forceTimeUpdate(newDate);
-          }, 1000);
+          }.bind(this), 1000);
         }
         this.data.networkTimeInitialized = true;
-        setTimeout(() => {
+        setTimeout(function () {
+          _newArrowCheck(this, _this19);
           // possibility for time inaccuracy. Hence recheck in 10 seconds.
           this.data.networkTimeInitialized = false;
-        }, 10 * 1000);
+        }.bind(this), 10 * 1000);
         console.log('network data: ', response);
         this.setFetchingStatus('OK. Updated time from network', 'success', false, 1);
-      },
-      error: (err) => {
+      }.bind(this),
+      error: function error(err) {
+        _newArrowCheck(this, _this18);
         console.log('err: ', err);
         // alert('err: ' + err);
         this.setFetchingStatus('FAILED to update time from network', 'error', false, 999);
-      },
+      }.bind(this)
     });
-  }
-
-  tryConnectingToTimeServer(retryCount) {
+  };
+  _proto3.tryConnectingToTimeServer = function tryConnectingToTimeServer(retryCount) {
+    var _this20 = this;
     var timeServerSSID = this.data.timeServerSSID;
     retryCount = retryCount || 0;
     if (!(this.data.timeOriginMode == 'network' && this.data.networkTimeApiUrl == this.timeServerApi)) {
@@ -1134,36 +1138,38 @@ class App {
     var isHiddenSSID = false;
     this.data.network.connecting = true;
     this.data.network.status = 'Connecting to ' + timeServerSSID + ' (' + retryCount + ')...';
-    WifiWizard2.connect(timeServerSSID, bindAll, '1234567890', 'WPA', isHiddenSSID).then(
-      (res) => {
-        this.data.network.connecting = false;
-        this.data.network.status = 'Connected to ' + timeServerSSID;
-        this.checkNetworkStatus();
-      },
-      (err) => {
-        this.data.network.status = 'ERR ' + timeServerSSID + ' - ' + err;
-        setTimeout(() => {
-          this.tryConnectingToTimeServer(retryCount + 1);
-        }, 1000);
-      }
-    );
-  }
-
-  deviceReady() {
+    WifiWizard2.connect(timeServerSSID, bindAll, '1234567890', 'WPA', isHiddenSSID).then(function (res) {
+      _newArrowCheck(this, _this20);
+      this.data.network.connecting = false;
+      this.data.network.status = 'Connected to ' + timeServerSSID;
+      this.checkNetworkStatus();
+    }.bind(this), function (err) {
+      var _this21 = this;
+      _newArrowCheck(this, _this20);
+      this.data.network.status = 'ERR ' + timeServerSSID + ' - ' + err;
+      setTimeout(function () {
+        _newArrowCheck(this, _this21);
+        this.tryConnectingToTimeServer(retryCount + 1);
+      }.bind(this), 1000);
+    }.bind(this));
+  };
+  _proto3.deviceReady = function deviceReady() {
     this.isDeviceReady = true;
     this.checkNetworkStatus();
-  }
-  init(initialTestTime, callback, analogClock) {
+  };
+  _proto3.init = function init(initialTestTime, callback, analogClock) {
+    var _this22 = this;
     this.initialTestTime = initialTestTime;
     this.analogClock = analogClock;
-    this.initStorage(() => {
+    this.initStorage(function () {
+      _newArrowCheck(this, _this22);
       this.nextTick();
       if (callback) {
         callback();
       }
       this.initShortcuts();
-    });
-  }
-}
-
+    }.bind(this));
+  };
+  return App;
+}();
 window.mdApp = new App();
