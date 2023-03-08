@@ -529,11 +529,7 @@ var App = /*#__PURE__*/function () {
     var m = moment(yearParam + ' ' + (monthParam + 1) + ' ' + dayParam + ' ' + time + 'm', 'YYYY M D hh:mma');
     if (!isNaN(this.data.timeAdjustmentMinutes) && this.data.timeAdjustmentMinutes != 0) {
       var timeAdjustmentMinutes = parseInt(this.data.timeAdjustmentMinutes);
-      if (timeAdjustmentMinutes < 0) {
-        m.subtract(timeAdjustmentMinutes, 'minutes');
-      } else {
-        m.add(timeAdjustmentMinutes, 'minutes');
-      }
+      m.add(timeAdjustmentMinutes, 'minutes'); // when timeAdjustmentMinutes is < 0, it's substracted automatically
     }
     return m.toDate();
   };
