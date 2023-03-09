@@ -641,8 +641,7 @@ var App = /*#__PURE__*/function () {
     //   'https://images.unsplash.com/photo-1523821741446-edb2b68bb7a0?ixlib=rb-1.2.1&q=80&fm=jpg&crop=entropy&cs=tinysrgb&w=1080&fit=max',
     // ];
     // return (this.data.backgroundImage = backgroundImages[0]);
-    var maxAvailableBackgrounds = 11;
-    this.data.backgroundImage = 'backgrounds/' + this.getRandomNumber(1, maxAvailableBackgrounds) + '.jpg?v=' + this.data.bgVersion;
+    this.data.backgroundImage = 'backgrounds/' + this.data.time.getMinutes() + '.jpg?v=' + this.data.bgVersion;
   };
   _proto3.commitCurrentPrayer = function commitCurrentPrayer() {
     if (!this.data.currentPrayer) {
